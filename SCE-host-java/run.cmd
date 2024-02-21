@@ -1,0 +1,1 @@
+java -Datr=3BEA00008131FE450031C173C840000090007A -Dcomport=COM4 -jar SmartCardEmuHost.jar

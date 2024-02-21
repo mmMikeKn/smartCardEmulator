@@ -1,0 +1,35 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "global.h"
+#include "com_rf_io.h"
+
+static inline int waitDataT0(int sz) {
+ while(cardIO_rcv_ptr < sz) {
+  if(!chkVcc()) return -1;
+  if((RST_PORT->IDR & RST_PIN) == 0) {
+   while(TRUE) {
+    if(!chkVcc()) return -1;
+    if((RST_PORT->IDR & RST_PIN) != 0) {
+     cardIO_RESET(atr, atr_sz);
+     cmd_eventATR(TRUE);
+     return 0;
+    }
+   }
+  }
+ }
+ delayMs(50);
+ return 1;
+}
+
+void smartCardLifeT0() {
+ while(TRUE) {
+  cardIO_startRvc();
+  int st = waitDataT0(5);
+  if(st == -1) return;
+  if(st == 0) continue;
+  cmd_APDU((unsigned char*)cardIO_rcv_buf, cardIO_rcv_ptr);
+  cardIO_sendByte(0x6A);
+  cardIO_sendByte(0x86);
+ }
+}
